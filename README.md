@@ -1,6 +1,6 @@
 # skills
 
-Personal AI skills, usable in both Claude Code and Codex (or any harness that follows the [Agent Skills](https://code.claude.com/docs/en/skills) format).
+My personal AI skills, usable in both Claude Code and Codex (or any harness that follows the [Agent Skills](https://code.claude.com/docs/en/skills) format).
 
 ## Skills
 
@@ -9,6 +9,8 @@ Vendored skills from [mattpocock/skills](https://github.com/mattpocock/skills):
 - `grill-me`: relentless interview to sharpen a plan or design.
 - `handoff`: compact the current conversation into a handoff document for another agent.
 - `teach`: guided, stateful teaching workspace for learning a topic over multiple sessions.
+
+I also install [Impeccable](https://impeccable.style/) and [Playwright CLI](https://playwright.dev/) skills via my [dotfiles](https://github.com/jacksluong/dotfiles) repo.
 
 ## Install
 
