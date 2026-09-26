@@ -4,6 +4,10 @@ My personal AI skills, usable in both Claude Code and Codex (or any harness that
 
 ## Skills
 
+My own skills:
+
+- `create-kb-md`: write a standalone Markdown reference note for a personal knowledge base.
+
 Vendored skills from [mattpocock/skills](https://github.com/mattpocock/skills):
 
 - `grill-me`: relentless interview to sharpen a plan or design.

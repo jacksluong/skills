@@ -1,0 +1,5 @@
+interface:
+  display_name: "Create KB Note"
+  short_description: "Write a reusable Markdown reference note"
+policy:
+  allow_implicit_invocation: false
