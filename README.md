@@ -7,13 +7,13 @@ My personal AI skills, usable in both Claude Code and Codex (or any harness that
 My own skills:
 
 - `create-kb-md`: write a standalone Markdown reference note for a personal knowledge base.
-- `create-plan`: interview, then write a comprehensive plan document to `.docs/` in the current repo.
+- `create-plan`: interview, then write a comprehensive plan document to `.plans/` in the current repo.
 
-Vendored skills from [mattpocock/skills](https://github.com/mattpocock/skills):
+Adapted skills from [mattpocock/skills](https://github.com/mattpocock/skills):
 
 - `grill-me`: relentless interview to sharpen a plan or design.
 - `handoff`: compact the current conversation into a handoff document for another agent.
-- `teach`: guided, stateful teaching workspace for learning a topic over multiple sessions.
+- `teach`: guided, stateful teaching workspace for learning a topic over multiple sessions, saved to `.learning/<topic>/` in the current repo.
 
 I also install [Impeccable](https://impeccable.style/) and [Playwright CLI](https://playwright.dev/) skills via my [dotfiles](https://github.com/jacksluong/dotfiles) repo.
 

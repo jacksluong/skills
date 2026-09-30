@@ -1,6 +1,6 @@
 ---
 name: teach
-description: Teach the user a new skill or concept, within this workspace.
+description: Teach the user a new skill or concept, within a `.learning/<topic>/` workspace in the current repo.
 disable-model-invocation: true
 argument-hint: "What would you like to learn about?"
 ---
@@ -9,7 +9,16 @@ The user has asked you to teach them something. This is a stateful request - the
 
 ## Teaching Workspace
 
-Treat the current directory as a teaching workspace. The state of their learning is captured in this directory in several files:
+Teaching files always live in the `.learning/` directory at the root of the current repo (run `git rev-parse --show-toplevel` to find it). If the current directory is not inside a git repo, use `.learning/` in the current directory. Never write teaching files outside `.learning/`.
+
+Each topic gets its own workspace: `.learning/<topic>/`, where `<topic>` is a short dash-case name (for example, `.learning/rust-ownership/`). To pick the workspace:
+
+- List the existing folders in `.learning/`.
+- If one matches what the user wants to learn, use it.
+- If none match, propose a new topic name and confirm it with the user before creating the folder.
+- If it is unclear which topic applies, ask the user.
+
+All paths below are relative to the topic workspace, `.learning/<topic>/`. The state of their learning is captured in this directory in several files:
 
 - `MISSION.md`: A document capturing the _reason_ the user is interested in the topic. This should be used to ground all teaching. Use the format in [MISSION-FORMAT.md](./MISSION-FORMAT.md).
 - `./reference/*.html`: A directory of reference materials. These are the compressed learnings from the lessons - cheat sheets, reference algorithms, syntax, yoga poses, glossaries. They are the raw units of learning. They should be beautiful documents which print out well, and are designed for quick reference.

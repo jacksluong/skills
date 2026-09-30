@@ -1,19 +1,19 @@
 ---
 name: create-plan
-description: Interview the user until every decision is settled, then write a comprehensive Markdown plan document for whatever they describe (a feature, migration, refactor, project, or process) to `.docs/<topic>.md` at the root of the current repo. Use when the user asks to "plan this out", "write a plan", "make a plan doc", "spec this", or wants a design or implementation plan saved in the repo.
+description: Interview the user until every decision is settled, then write a comprehensive Markdown plan document for whatever they describe (a feature, migration, refactor, project, or process) to `.plans/<topic>.md` at the root of the current repo. Use when the user asks to "plan this out", "write a plan", "make a plan doc", "spec this", or wants a design or implementation plan saved in the repo.
 disable-model-invocation: true
 argument-hint: "What should the plan cover?"
 ---
 
 # Create plan document
 
-Produce one Markdown file in `.docs/` that a person or agent can pick up cold and execute without asking follow-up questions.
+Produce one Markdown file in `.plans/` that a person or agent can pick up cold and execute without asking follow-up questions.
 
 ## Step 1: Gather context
 
 Treat the arguments as the plan's subject. If there are none, use the subject discussed so far in the session. If neither exists, ask what the plan should cover.
 
-Before asking anything, learn what you can on your own. Read the repo (README, CLAUDE.md or AGENTS.md, relevant source, existing `.docs/` files) and search the web for facts that change over time, such as library versions and API behavior. Dispatch sub-agents for broad searches. Never ask the user for a fact you could look up.
+Before asking anything, learn what you can on your own. Read the repo (README, CLAUDE.md or AGENTS.md, relevant source) and search the web for facts that change over time, such as library versions and API behavior. Dispatch sub-agents for broad searches. Never ask the user for a fact you could look up.
 
 ## Step 2: Interview
 
@@ -96,7 +96,7 @@ Writing guidance:
 
 ## Step 4: Save and deliver
 
-- Location: `.docs/` at the repo root (`git rev-parse --show-toplevel`). Outside a git repo, use the current directory. Create `.docs/` if it doesn't exist.
-- File name: the topic in lowercase kebab-case, for example `.docs/auth-session-migration.md`.
+- Location: `.plans/` at the repo root (`git rev-parse --show-toplevel`). Outside a git repo, use the current directory. Create `.plans/` if it doesn't exist.
+- File name: the topic in lowercase kebab-case, for example `.plans/auth-session-migration.md`.
 - If a file with that name exists, ask whether to update it or pick a new name.
 - In the reply, give the file path and one line on what the plan covers. Don't paste the plan into the chat.
