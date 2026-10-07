@@ -8,6 +8,7 @@ My own skills:
 
 - `create-kb-md`: write a standalone Markdown reference note for a personal knowledge base.
 - `create-plan`: interview, then write a comprehensive plan document to `.plans/` in the current repo.
+- `review-prs`: review open PRs in the current repo, approve the sound ones, and check with me before requesting changes.
 
 Adapted skills from [mattpocock/skills](https://github.com/mattpocock/skills):
 
