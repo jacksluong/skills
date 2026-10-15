@@ -95,7 +95,8 @@ Do not post anything to GitHub. Only report back.
 3. **Check CI.** Run `gh pr checks <n>`. If a check fails, read only the tail of its log (`gh run view <run-id> --log-failed | tail -100`) and decide whether the PR's own changes caused it. Failures unrelated to the PR do not block.
 4. **Check overlap.** For each overlapping PR, fetch only the shared files' patches: `gh api repos/{owner}/{repo}/pulls/<other>/files --paginate --jq '.[] | select(.filename == "<path>") | .patch'`. Classify:
    - **Independent:** the PRs change unrelated parts of the shared files, and neither change affects the logic the other touches. Ignore.
-   - **Conflict:** the PRs change the same lines, or the same logic, or one change affects code the other relies on. Block, whether or not git can merge both cleanly.
+   - **Expected merge conflict:** the PRs change the same lines, so git will report a conflict for whichever merges second, but neither change affects the logic the other relies on. Do not block if the PRs accomplish separate things, or if either PR mentions the other PR or the conflict in its body, comments, or reviews. Otherwise treat it as a conflict.
+   - **Conflict:** the PRs change the same logic, or one change affects code the other relies on. Block, whether or not git can merge both cleanly.
    - **Duplicate work:** both PRs solve the same problem. Block.
 
    Also check the roster for duplicate work in PRs that share no files, using their titles. Fetch a candidate's description with `gh pr view <other> --json body` only when the title suggests the same goal.
@@ -119,19 +120,19 @@ Do not post anything to GitHub. Only report back.
    <the exact review body to post>
    ```
 
-   **Approve comment:** 1 to 3 sentences on what the PR does well or what you checked. You may add a minor point the author could improve. If auto-merge is enabled, the PR will likely merge on approval and the author will not push a follow-up, so phrase any minor point as a note for future work ("Worth a follow-up: ..."). Anything that must change before merge is not minor, so it cannot go in an approval.
+   **Approve comment:** 1 to 3 sentences on what you checked. You may add a minor point the author could improve. If auto-merge is enabled, the PR will likely merge on approval and the author will not push a follow-up, so phrase any minor point as a note for future work ("Worth a follow-up: ..."). Anything that must change before merge is not minor, so it cannot go in an approval. If the PR has an expected merge conflict, add one line naming the other PR and the shared files, and say that whichever merges second needs a rebase.
 
    **Request-changes comment:** one sentence of context, then a short list of the required changes. Each item names the file and says what is wrong and why. For a conflict or duplicate, link the other PR and say how the two interact.
 
    **Unsure comment:** the specific questions the author needs to answer.
 
-   Comment style: neutral and short, first person only when needed. No em dashes. No mention of AI.
+   Comment style: neutral and lean, first person only when needed. Say only what the author needs to act on or know. Skip praise, summaries of the diff, and points earlier reviewers already made. No em dashes. No mention of AI.
 
 ## Step 4: Verify reviews
 
 Skim each report. If a verdict does not match its own reasoning (for example, an approval whose comment describes a likely bug), move it to unsure.
 
-Make overlap verdicts consistent. If one review found a conflict or duplicate with another eligible PR, the other PR's review must also block on it. Fix any approval that misses this.
+Make overlap verdicts consistent. If one review found a conflict or duplicate with another eligible PR, the other PR's review must also block on it. Fix any approval that misses this. If one review classed a pair as an expected merge conflict and the other review did not find a conflict or duplicate, neither review blocks on it.
 
 ## Step 5: Post approvals
 
