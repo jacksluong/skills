@@ -1,0 +1,5 @@
+interface:
+  display_name: "No AI Slop"
+  short_description: "Edit drafts to remove AI patterns while keeping your voice"
+policy:
+  allow_implicit_invocation: false

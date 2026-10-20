@@ -16,6 +16,10 @@ Adapted skills from [mattpocock/skills](https://github.com/mattpocock/skills):
 - `handoff`: compact the current conversation into a handoff document for another agent.
 - `teach`: guided, stateful teaching workspace for learning a topic over multiple sessions, saved to `.learning/<topic>/` in the current repo.
 
+Adapted skills from [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop):
+
+- `no-ai-slop`: edit a draft to remove AI writing patterns while keeping the writer's voice, or flag those patterns without rewriting.
+
 I also install [Impeccable](https://impeccable.style/) and [Playwright CLI](https://playwright.dev/) skills via my [dotfiles](https://github.com/jacksluong/dotfiles) repo.
 
 ## Install
