@@ -81,7 +81,7 @@ If the query returns exactly 100 PRs, there may be more. Page through the rest w
 
 If the user passed PR numbers, review only those, but keep the full roster for the overlap check. If a requested PR is not eligible, say why and skip it.
 
-If there are no eligible PRs, say so and stop. If there are more than 10, list them (number, title, author) and ask the user to confirm or narrow the set before going on.
+If there are no eligible PRs, say so and stop. If there are more than 20, list them (number, title, author) and ask the user to confirm or narrow the set before going on.
 
 ## Step 2: Shared context
 
