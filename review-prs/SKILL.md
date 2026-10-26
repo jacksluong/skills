@@ -111,6 +111,7 @@ Do not post anything to GitHub. Only report back.
 
    ```
    PR: #<n> <title>
+   Summary: <one sentence on what the PR does and why, for the user only>
    Verdict: approve | request-changes | unsure
    Head: <headOid>
    CI: <passing | failing (caused by PR) | failing (unrelated) | pending>
@@ -148,7 +149,7 @@ gh pr review <n> --approve --body "<comment>"
 
 For every request-changes and unsure PR, show:
 
-- Title and link.
+- Link and the one-sentence summary.
 - Verdict and the one-line reason.
 - The exact comment it would post.
 
@@ -164,10 +165,10 @@ Wait for the user's answers. Check the head commit again before posting each one
 
 ## Step 7: Summary
 
-End with one table covering every PR in scope:
+End with one table covering every PR in scope. The summary column uses the one-sentence summary from each review report, so the user learns what each PR does. For PRs that were not reviewed, use the PR title instead.
 
-| PR | Title | Verdict | Status |
+| PR | Summary | Verdict | Status |
 | --- | --- | --- | --- |
-| [#12](url) | Add retry to uploader | approve | posted |
-| [#15](url) | Rework auth flow | request-changes | posted after edit |
+| [#12](url) | Retries failed S3 uploads up to 3 times with backoff so large exports stop failing on transient errors. | approve | posted |
+| [#15](url) | Moves session tokens from localStorage to HTTP-only cookies and adds a refresh endpoint. | request-changes | posted after edit |
 | [#16](url) | Bump deps | skipped (own PR) | |
