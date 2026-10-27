@@ -21,13 +21,16 @@ query($owner: String!, $name: String!) {
   repository(owner: $owner, name: $name) {
     pullRequests(states: OPEN, first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
       nodes {
-        number title url isDraft baseRefName headRefOid
+        number title url isDraft baseRefName headRefOid reviewDecision
         author { login }
         autoMergeRequest { enabledAt }
         files(first: 100) { nodes { path } }
         commits(last: 20) { nodes { commit { oid committedDate parents { totalCount } } } }
-        reviews(last: 50) { nodes { author { __typename login } state commit { oid } } }
+        reviews(last: 50) { nodes { id author { __typename login } state commit { oid } } }
         comments(last: 50) { nodes { author { login } createdAt } }
+        timelineItems(itemTypes: [REVIEW_DISMISSED_EVENT], last: 50) {
+          nodes { ... on ReviewDismissedEvent { previousReviewState review { id } } }
+        }
       }
     }
   }
@@ -39,26 +42,32 @@ Build a compact roster with `jq`:
 ```bash
 jq --arg me "$ME" '.data.repository.pullRequests.nodes | map(. as $pr
   | [.commits.nodes[].commit] as $commits
-  | ([.reviews.nodes[] | select(.author.__typename != "Bot"
-      and (.state == "APPROVED" or .state == "CHANGES_REQUESTED"))] | last) as $prior
+  | (reduce (.timelineItems.nodes[] | select(.review != null)) as $e ({};
+      .[$e.review.id] = $e.previousReviewState)) as $wasState
+  | [.reviews.nodes[] | select(.author.__typename != "Bot")
+      | .was = (if .state == "DISMISSED" then $wasState[.id] else .state end)] as $reviews
+  | ([$reviews[] | select(.was == "APPROVED" or .was == "CHANGES_REQUESTED")] | last) as $prior
   | ($commits | map(.oid) | index($prior.commit.oid)) as $priorAt
   | (if $priorAt != null and $priorAt < ($commits | length) - 1
       then $commits[$priorAt + 1:] else null end) as $newCommits
+  | (.reviewDecision == "REVIEW_REQUIRED" and any($reviews[];
+      .state == "DISMISSED" and .was == "APPROVED" and .commit.oid == $pr.headRefOid)) as $reapprove
   | {
   number, title, url, author: .author.login, base: .baseRefName,
   headOid: .headRefOid, autoMerge: (.autoMergeRequest != null),
   files: [.files.nodes[].path],
-  review: (if $newCommits == null then "full"
-    elif $prior.state == "APPROVED" and all($newCommits[]; .parents.totalCount > 1) then "merge-only"
+  review: (if $reapprove then "re-approve"
+    elif $newCommits == null then "full"
+    elif $prior.was == "APPROVED" and all($newCommits[]; .parents.totalCount > 1) then "merge-only"
     else "follow-up" end),
-  since: (if $newCommits == null then null else {oid: $prior.commit.oid, state: $prior.state} end),
+  since: (if $newCommits == null then null else {oid: $prior.commit.oid, state: $prior.was} end),
   skip: (if .isDraft then "draft"
     elif .author.login == $me then "own"
-    elif any(.reviews.nodes[]; .author.login == $me and .commit.oid == $pr.headRefOid)
+    elif $reapprove then null
+    elif any($reviews[]; .author.login == $me and .state != "DISMISSED" and .commit.oid == $pr.headRefOid)
       or any(.comments.nodes[]; .author.login == $me and .createdAt > $commits[-1].committedDate)
       then "responded"
-    elif any(.reviews.nodes[]; .author.__typename != "Bot"
-      and .commit.oid == $pr.headRefOid
+    elif any($reviews[]; .commit.oid == $pr.headRefOid
       and (.state == "APPROVED" or .state == "CHANGES_REQUESTED")) then "reviewed"
     else null end)
 })'
@@ -68,11 +77,12 @@ A PR is **eligible** when `skip` is null. That excludes:
 
 - Drafts.
 - The user's own PRs.
-- PRs the user already responded to since the last commit: any review by the user at the current head, or a PR comment by the user posted after the head commit.
+- PRs the user already responded to since the last commit: any review by the user at the current head that was not dismissed, or a PR comment by the user posted after the head commit.
 - PRs that a person already approved or blocked at the current head commit. Bot reviews do not count.
 
-`review` sets how deep Step 3 goes. It looks at the latest approval or change request by a person:
+`review` sets how deep Step 3 goes. It looks at the latest approval or change request by a person, counting reviews that were later dismissed as what they were before dismissal:
 
+- `re-approve`: a person's approval at the current head was dismissed, and the PR still needs an approval. This happens when the repo dismisses approvals after the base branch moves. There is no new code to review, so it skips Step 3.
 - `full`: no such review, or its commit is no longer in the PR (for example after a rebase) or not among the last 20 commits.
 - `follow-up`: the PR has new commits since that review. `since` holds the reviewed commit and the review's state.
 - `merge-only`: that review was an approval, and every commit since is a merge.
@@ -103,7 +113,7 @@ Do this once in the main agent so the reviewers do not each repeat it.
 
 ## Step 3: Review each PR
 
-Start one subagent per eligible PR, all in parallel. Pass the full review instructions for `full` PRs and the follow-up review instructions for `follow-up` and `merge-only` PRs. Run every subagent on the same model as yours. If the harness lets you pick a model, set it explicitly instead of relying on a default, and use a general-purpose agent type, not a lightweight search agent. If your harness has no subagents, review the PRs one at a time with the same instructions.
+Start one subagent per eligible PR except `re-approve` PRs, all in parallel. Pass the full review instructions for `full` PRs and the follow-up review instructions for `follow-up` and `merge-only` PRs. Run every subagent on the same model as yours. If the harness lets you pick a model, set it explicitly instead of relying on a default, and use a general-purpose agent type, not a lightweight search agent. If your harness has no subagents, review the PRs one at a time with the same instructions.
 
 Give each subagent:
 
@@ -185,6 +195,8 @@ Skim each report. If a verdict does not match its own reasoning (for example, an
 Make overlap verdicts consistent. If one review found a conflict or duplicate with another eligible PR, the other PR's review must also block on it. Fix any approval that misses this. If one review classed a pair as an expected merge conflict and the other review did not find a conflict or duplicate, neither review blocks on it.
 
 ## Step 5: Post approvals
+
+This covers approved PRs from Step 3 and `re-approve` PRs. For a `re-approve` PR, write the one-sentence summary from its description, and use this comment: "Re-approving. There are no new commits since the earlier approval was dismissed."
 
 For each approved PR, first confirm the head has not moved: `gh pr view <n> --json headRefOid -q .headRefOid`. If it changed, do not post. Treat the PR as unsure and note that new commits arrived during the review.
 
