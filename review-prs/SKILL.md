@@ -1,13 +1,13 @@
 ---
 name: review-prs
-description: Review every open PR in the current repo (or the PR numbers given), approve the ones that are reasonably correct with a brief comment, and check with the user before requesting changes on any of them. Blocks on any conflict or duplicate work between open PRs, and accounts for auto-merge on PRs that have it enabled.
+description: Review every open PR in the current repo (or the PR numbers given), approve the ones that are correct with a brief comment, and check with the user before requesting changes on any of them. Blocks on any conflict or duplicate work between open PRs, and accounts for auto-merge on PRs that have it enabled.
 disable-model-invocation: true
 argument-hint: "[PR numbers]"
 ---
 
 # Review PRs
 
-Review open PRs, approve the reasonably correct ones, and run every non-approval by the user before posting it.
+Review open PRs, approve the correct ones, and run every non-approval by the user before posting it.
 
 ## Step 1: Collect PRs
 
@@ -122,7 +122,7 @@ Give each subagent:
 - The condensed conventions from Step 2.
 - The roster of all other open, non-draft PRs as one line each: number, title, author, file count. This lets it spot duplicate work across PRs, even when they share no files.
 - Its entries from the overlap map: which PRs share which files.
-- The matching review instructions below.
+- The matching review instructions below, and the comment guidance in "Write comments people can understand".
 
 ### Full review instructions
 
@@ -130,6 +130,17 @@ Do not post anything to GitHub. Only report back.
 
 1. **Read the intent.** `gh pr view <n> --json title,body,closingIssuesReferences,comments,reviews`. Read the linked issues. Note points earlier reviewers already made so you do not repeat them.
 2. **Read the change in depth.** Diff the head against the base, then read each changed file in full at the head commit. Trace the code around every change: callers, callees, types, config, schemas, and how inputs reach the changed code. Take the time a careful senior reviewer would. Do not check out the branch or run tests.
+
+   For each change, check at least the following:
+   - Inputs: empty, missing, very large, malformed, or duplicate values that can reach it.
+   - Error paths: what happens when a call fails, times out, or is retried, and whether a partial failure leaves bad state behind.
+   - Concurrency: two requests, jobs, or users hitting the same code or data at once.
+   - Existing data: whether records, caches, or messages written by the old code still work with the new code.
+   - Callers: code that relies on the old behavior, return shape, or side effects.
+   - Security: auth and permission checks, untrusted input reaching queries, commands, or output, and secrets.
+   - Completeness: whether the change does everything the PR description and linked issues say.
+
+   The bar in step 5 and YAGNI decide what blocks and what goes in the comment. They do not limit how hard you look. Follow every suspicion until you confirm it or rule it out.
 3. **Check CI.** Run `gh pr checks <n>`. If a check fails, read only the tail of its log (`gh run view <run-id> --log-failed | tail -100`) and decide whether the PR's own changes caused it. Failures unrelated to the PR do not block.
 4. **Check overlap.** For each overlapping PR, fetch only the shared files' patches: `gh api repos/{owner}/{repo}/pulls/<other>/files --paginate --jq '.[] | select(.filename == "<path>") | .patch'`. Classify:
    - **Independent:** the PRs change unrelated parts of the shared files, and neither change affects the logic the other touches. Ignore.
@@ -171,7 +182,7 @@ Do not post anything to GitHub. Only report back.
 
    **Unsure comment:** the specific questions the author needs to answer.
 
-   Comment style: neutral and lean, first person only when needed. Say only what the author needs to act on or know. Skip praise, summaries of the diff, and points earlier reviewers already made. No em dashes. No mention of AI.
+   Comment style: neutral and lean, first person only when needed. Say only what the author needs to act on or know. Skip praise, summaries of the diff, and points earlier reviewers already made. No em dashes. No mention of AI. Follow "Write comments people can understand" below.
 
 ### Follow-up review instructions
 
@@ -187,6 +198,16 @@ A person already approved or requested changes on this PR at the `since` commit.
 4. **Check overlap.** Same as step 4 of the full review, limited to files the new commits touched. Skip this for `merge-only` PRs.
 5. **Decide.** Use the same bar as step 5 of the full review, applied to the new changes. If `since` is a change request, also check that each requested change is addressed. Merge commits almost never add logic changes, so a `merge-only` PR should be approved unless a conflict resolution drops or changes logic from either side, or CI fails because of the merge.
 6. **Report** in the same format as the full review. Base the summary on the whole PR. Keep the approve comment to what you checked in the new commits. For `merge-only` PRs, one sentence is enough, for example: "Re-approving after the merge from `<base>`. The conflict resolution keeps both sides."
+
+### Write comments people can understand
+
+- Assume the reader understands the feature but does not know its internal implementation.
+- Explain what happens, why it matters, and what needs to change.
+- Describe behavior before naming functions, fields, or files. Use those names to locate the problem, not as substitutes for explaining it.
+- Prefer concrete examples, such as "fetching the same unchanged data twice", over internal or jargon-dense terms such as "distinct observations".
+- When an explanation needs several technical definitions, rewrite it around observable behavior instead.
+- Keep the explanation accurate. Plain language must preserve the cause and consequence.
+- For overlapping PRs, distinguish incompatible behavior from shared files that need merging or regeneration.
 
 ## Step 4: Verify reviews
 
