@@ -1,6 +1,6 @@
 ---
 name: address-pr-comments
-description: Address the open review comments on a PR in the current repo. Weighs each comment on its merits, fixes the ones that hold up, and checks with the user before pushing back, answering questions, or deferring anything. Then pushes the fixes, replies to each comment, resolves fixed threads, and re-requests review.
+description: Address the open review comments on a PR in the current repo. Weighs each comment on its merits, fixes the ones that hold up, and checks with the user before pushing back, answering questions, or deferring anything. Then pushes the fixes, replies to each comment, resolves fixed threads, and re-requests review. Works in a separate worktree unless the current checkout is already on the PR's branch.
 disable-model-invocation: true
 argument-hint: "<PR number>"
 ---
@@ -22,8 +22,9 @@ gh api graphql -F owner='{owner}' -F name='{repo}' -F number=<n> -f query='
 query($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
-      number title url state body baseRefName headRefOid
+      number title url state body baseRefName headRefName headRefOid isCrossRepository
       author { login }
+      headRepository { url sshUrl }
       closingIssuesReferences(first: 10) { nodes { number } }
       reviewThreads(first: 100) {
         nodes {
@@ -73,12 +74,20 @@ jq --arg me "$ME" '.data.repository.pullRequest as $pr | {
 
 If a list comes back full (100 entries, or 50 comments in a thread), there may be more. Fetch the rest with the connection's `pageInfo` cursors.
 
-## Step 2: Prepare the branch
+## Step 2: Set up the checkout
 
 - If the PR is not open, say so and stop.
 - If someone other than the user opened the PR, confirm with the user before changing anything.
-- If the working tree has uncommitted changes, stop and ask the user what to do with them.
-- Check out the PR with `gh pr checkout <n>`. If `HEAD` then differs from `headRefOid`, for example because the local branch has commits the PR lacks, stop and ask.
+- Fetch the PR head with `git fetch origin refs/pull/<n>/head`. If the user's local branch for the PR has commits the PR lacks, stop and ask.
+
+Work in the user's checkout if it is on the PR's branch (`gh pr view --json number -q .number` prints `<n>`). If it is behind the PR, fast-forward it with `git merge --ff-only <headRefOid>`. If git refuses, stop and ask.
+
+Otherwise, work in a new worktree, so the user's checkout stays as it is:
+
+- Put the worktree where the repo's instructions say worktrees go. If they say nothing, use `.worktrees/pr-<n>` at the project root (the main worktree's root). If the path already exists, ask the user what to do with it.
+- Create the worktree with a detached HEAD, since the PR's branch may be checked out in another worktree: `git worktree add --detach <path> <headRefOid>`.
+- If your harness can switch the session into an existing worktree, do that. Otherwise run every later command from the worktree.
+- A new worktree has no installed dependencies and none of the files git ignores, such as `.env`. Before you run code in it, set it up the way the repo's docs describe, and copy any ignored files the code needs from the user's checkout.
 
 ## Step 3: Read the context
 
@@ -97,7 +106,7 @@ Build one list of items to handle:
 - Every thread with `waiting: true` where the user's last reply promised a change ("good catch, will fix") that the code still lacks. Leave the other waiting threads alone.
 - Every request in `topLevel` from someone other than the user that the user has not answered in a later comment. A review summary can hold several requests, so split it into one item per request. Bot reviews often tuck extra findings into collapsed `<details>` sections, so read those too. When a summary point restates an inline thread, treat them as one item and reply in the thread.
 
-Leave out automated comments that do not review the code, such as deploy previews, coverage reports, and CI summaries. If the list is empty, say so and stop.
+Leave out automated comments that do not review the code, such as deploy previews, coverage reports, and CI summaries. If the list is empty, remove any worktree you created as in Step 9, say so, and stop.
 
 ## Step 5: Judge each item
 
@@ -164,13 +173,21 @@ Find the repo's checks, such as tests, lint, and type checks, in its docs, packa
 
 1. Change the code. Keep the change to what the comment needs. Note unrelated problems for the summary instead of fixing them.
 2. Run the checks that cover the change. Fix any failure the change caused. Note failures unrelated to it for the summary.
-3. Commit, following the commit message style in `git log`. Do not mention AI in the message or add AI co-author trailers.
+3. Commit only the changes for this fix, following the commit message style in `git log`. Do not mention AI in the message or add AI co-author trailers.
 
 A GitHub suggestion block replaces the commented lines with its contents. Check it against the current code before you apply it, since the lines may have moved.
 
 If a fix turns out wrong, for example because the suggestion fails as written or breaks a caller, stop and bring it to the user as in Step 6.
 
-When all fixes are committed, push with `git push`. Never force-push. If the push is rejected, stop and tell the user.
+When all fixes are committed, push them to the PR's branch:
+
+```bash
+git push origin HEAD:refs/heads/<headRefName>
+```
+
+If the PR comes from a fork (`isCrossRepository`), push to the fork instead of `origin`. Use `headRepository.sshUrl` if `origin` pushes over SSH, or `headRepository.url` otherwise.
+
+Never force-push. If the push is rejected, stop and tell the user, including the worktree's path if you created one.
 
 ## Step 8: Reply on the PR
 
@@ -219,7 +236,13 @@ Examples:
 - Answer: "It runs once per deploy, during the migration step, so the cache is always cold at that point."
 - Defer: "Agreed that retries would help here. That's outside this PR, so I opened #123 to track it."
 
-## Step 9: Summary
+## Step 9: Remove the worktree
+
+Skip this step if you worked in the user's checkout.
+
+If you switched the session into the worktree, switch it back to the user's checkout. Then run `git worktree remove <path>` from the user's checkout. If git refuses because of leftover files, do not force it. Leave the worktree and give its path in the summary.
+
+## Step 10: Summary
 
 End with a brief summary of what the reviewers called out, what you think of each point, and how you handled it. Write one bullet per item, leaving out No action items. Each bullet links the comment and names the reviewer:
 
@@ -229,4 +252,4 @@ End with a brief summary of what the reviewers called out, what you think of eac
 
 If every item was No action, say so in one line instead.
 
-Below the bullets, list the reviewers you re-requested, check failures unrelated to the fixes, and anything else you noticed but left alone.
+Below the bullets, list the reviewers you re-requested, check failures unrelated to the fixes, and anything else you noticed but left alone. If you pushed fixes and a local branch for the PR is now behind the remote, say so.
