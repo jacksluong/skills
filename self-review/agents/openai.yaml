@@ -1,0 +1,3 @@
+interface:
+  display_name: "Self-Review"
+  short_description: "Review the agent's work with four independent reviewers, one per lens"
