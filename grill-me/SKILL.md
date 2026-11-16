@@ -1,7 +1,6 @@
 ---
 name: grill-me
-description: A relentless interview to sharpen a plan or design.
-disable-model-invocation: true
+description: A relentless interview to sharpen a plan or design. Use only when the user asks to be grilled or interviewed about a plan or design. Not for the clarifying questions you would ask before starting a task.
 ---
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.

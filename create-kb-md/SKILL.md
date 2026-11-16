@@ -1,7 +1,6 @@
 ---
 name: create-kb-md
-description: Write a standalone Markdown reference note for a personal knowledge base, either distilled from the topic discussed so far in the session or built from a topic and context the user provides. Strips all one-off situational detail (the user's specific bug, project, files, people, dates) so the note reads as a general refresher months later. Use whenever the user asks to "write this up", "make a doc/note of this", "save this to my knowledge base / KB / notes / Obsidian / second brain", "turn this into a reference or cheat sheet", "document what we learned", or wants a refresher document on a topic, even if they don't say "knowledge base".
-disable-model-invocation: true
+description: Write a standalone Markdown reference note for a personal knowledge base, either distilled from the topic discussed so far in the session or built from a topic and context the user provides. Use only when the user asks to save a note to their knowledge base, KB, notes app, Obsidian, or second brain, or asks for a standalone reference note or cheat sheet on a topic. Not for docs or other files in a repo, plans, handoffs, or summaries in chat. Strips all one-off situational detail (the user's specific bug, project, files, people, dates) so the note reads as a general refresher months later.
 ---
 
 # Create KB Markdown note

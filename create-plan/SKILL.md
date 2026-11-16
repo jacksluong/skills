@@ -1,7 +1,6 @@
 ---
 name: create-plan
-description: Interview the user until every decision is settled, then write a comprehensive Markdown plan document for whatever they describe (a feature, migration, refactor, project, or process) to `.plans/<topic>.md` at the root of the current repo. Use when the user asks to "plan this out", "write a plan", "make a plan doc", "spec this", or wants a design or implementation plan saved in the repo.
-disable-model-invocation: true
+description: Interview the user until every decision is settled, then write a comprehensive Markdown plan document for whatever they describe (a feature, migration, refactor, project, or process) to `.plans/<topic>.md` at the root of the current repo. Use only when the user asks for a plan document or spec saved in the repo or in `.plans/`. Not for planning in chat, plan mode, or a quick list of steps.
 argument-hint: "What should the plan cover?"
 ---
 

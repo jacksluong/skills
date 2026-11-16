@@ -1,5 +1,3 @@
 interface:
   display_name: "Review PRs"
   short_description: "Review open PRs, approve the sound ones, check with you before blocking"
-policy:
-  allow_implicit_invocation: false

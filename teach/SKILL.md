@@ -1,7 +1,6 @@
 ---
 name: teach
-description: Teach the user a new skill or concept, within a `.learning/<topic>/` workspace in the current repo.
-disable-model-invocation: true
+description: Teach the user a new skill or concept, within a `.learning/<topic>/` workspace in the current repo. Use only when the user asks you to teach them a topic or give them lessons, or picks up an existing `.learning/` workspace. Not for one-off questions or explanations.
 argument-hint: "What would you like to learn about?"
 ---
 

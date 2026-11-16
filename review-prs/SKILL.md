@@ -1,7 +1,6 @@
 ---
 name: review-prs
-description: Review every open PR in the current repo (or the PR numbers given), approve the ones that are correct with a brief comment, and check with the user before requesting changes on any of them. Blocks on any conflict or duplicate work between open PRs, and accounts for auto-merge on PRs that have it enabled.
-disable-model-invocation: true
+description: Review every open PR in the current repo (or the PR numbers given), approve the ones that are correct with a brief comment, and check with the user before requesting changes on any of them. Use only when the user asks to review the repo's open PRs, or to review specific PRs and post the reviews on GitHub. Not for local changes, your own work, or questions about a PR. Blocks on any conflict or duplicate work between open PRs, and accounts for auto-merge on PRs that have it enabled.
 argument-hint: "[PR numbers]"
 ---
 

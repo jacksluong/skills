@@ -1,5 +1,3 @@
 interface:
   display_name: "Create Plan"
   short_description: "Write a comprehensive plan document in .plans/"
-policy:
-  allow_implicit_invocation: false

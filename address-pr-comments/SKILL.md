@@ -1,7 +1,6 @@
 ---
 name: address-pr-comments
-description: Address the open review comments on a PR in the current repo. Weighs each comment on its merits, fixes the ones that hold up, and checks with the user before pushing back, answering questions, or deferring anything. Then pushes the fixes, replies to each comment, resolves fixed threads, and re-requests review. Works in a separate worktree unless the current checkout is already on the PR's branch.
-disable-model-invocation: true
+description: Address the open review comments on a PR in the current repo. Use only when the user asks to address, resolve, or respond to the review comments on a PR. Not for reviewing a PR, or for fixing a single comment the user pastes into the chat. Weighs each comment on its merits, fixes the ones that hold up, and checks with the user before pushing back, answering questions, or deferring anything. Then pushes the fixes, replies to each comment, resolves fixed threads, and re-requests review. Works in a separate worktree unless the current checkout is already on the PR's branch.
 argument-hint: "<PR number>"
 ---
 

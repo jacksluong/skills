@@ -1,5 +1,3 @@
 interface:
   display_name: "Address PR Comments"
   short_description: "Address PR review comments, fix what holds up, push back on the rest"
-policy:
-  allow_implicit_invocation: false
