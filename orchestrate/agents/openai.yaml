@@ -1,0 +1,3 @@
+interface:
+  display_name: "Orchestrate"
+  short_description: "Plan a task, then have subagents implement, review, and fix it"
