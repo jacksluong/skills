@@ -9,7 +9,7 @@ My own skills:
 - `address-pr-comments`: address the review comments on a PR, fix the ones that hold up, and check with me before pushing back on any.
 - `create-kb-md`: write a standalone Markdown reference note for a personal knowledge base.
 - `create-plan`: interview, then write a comprehensive plan document to `.plans/` in the current repo.
-- `orchestrate`: settle a plan, then have subagents implement it, review the result, and address the review in a separate worktree.
+- `orchestrate`: settle a plan, have subagents implement it, review the result, and address the review in a separate worktree, then open draft PRs in shared repos.
 - `review-prs`: review open PRs in the current repo, approve the sound ones, and check with me before requesting changes.
 - `self-review`: have four independent reviewer agents, one per lens, check the agent's work before its last commit, then fix what holds up and write the findings to a report.
 

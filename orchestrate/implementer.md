@@ -17,6 +17,8 @@ Carry out every step in scope, in the plan's order.
 - When the plan leaves a choice open, pick the option that fits the plan and the codebase best, and note it for the report.
 - Check facts that change over time, such as library APIs and versions, against the installed code or the docs instead of memory.
 
+If the plan splits the work into PRs, give each PR its own branch, in the plan's order. The worktree starts on the first PR's branch. Start each later branch from the branch below it in a stack, or from the base commit for an independent PR: `git switch -c <branch> <start>`. Commit each change on the branch of the PR it belongs to. When a change belongs in a lower PR of a stack, commit it on that branch, then carry it up: switch to the stack's top branch and run `git rebase --update-refs <lower branch>`. Independent PRs must not change the same lines.
+
 If the plan cannot work as written, for example because it relies on an API the code lacks or two steps contradict each other:
 
 - When the fix is small, clear, and keeps the plan's goal, make it and note it as a deviation.
@@ -26,7 +28,7 @@ Do not ask the user anything. The orchestrator does that.
 
 ## 3. Verify
 
-Find the repo's checks, such as tests, lint, type checks, and build, in its docs, package scripts or Makefile, and CI config. Add the tests the plan asks for, and the ones the repo's conventions expect for this kind of change. Run the checks that cover the change, and the plan's verification steps. Fix any failure the change caused. Note failures unrelated to it.
+Find the repo's checks, such as tests, lint, type checks, and build, in its docs, package scripts or Makefile, and CI config. Add the tests the plan asks for, and the ones the repo's conventions expect for this kind of change. Run the checks that cover the change, and the plan's verification steps. With PR branches, run them on each branch, since each PR must pass on its own. Fix any failure the change caused. Note failures unrelated to it.
 
 Keep runs local: no deploys, and nothing that changes shared databases or services.
 
@@ -40,7 +42,7 @@ Write "None" for an empty section.
 
 ```
 Status: done | stopped
-Steps: <one line per plan step in scope: what changed, and its commit>
+Steps: <one line per plan step in scope: what changed, and its branch and commit>
 Deviations: <each place the code departs from the plan, and why>
 Choices: <each decision the plan left open, what you chose, and why>
 Checks: <one line per check run, and its result>

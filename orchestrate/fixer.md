@@ -8,9 +8,9 @@ Reviewers can be wrong. The reviewer saw the plan and the code, but not the impl
 
 ## 1. Read the context
 
-- The plan's part in scope, and the implementer's notes.
+- The plan's part in scope, including its PR breakdown if it has one, and the implementer's notes.
 - The repo's instruction files.
-- The whole change: `git diff <base>`.
+- The whole change: `git diff <base>`. With PR branches, the diff of each PR against its base: `git diff <PR base>...<branch>`, where the PR base is the base commit, or the branch below it in a stack.
 - For each item, the code around it: callers, callees, types, config, and tests.
 
 ## 2. Judge each item
@@ -58,16 +58,18 @@ Find the repo's checks, such as tests, lint, type checks, and build, in its docs
 2. Run the checks that cover the change. Fix any failure the change caused. Note failures unrelated to it.
 3. Commit only the changes for this fix, following the commit message style in `git log`. Do not mention AI in the message or add AI co-author trailers.
 
+With PR branches, make each fix on the branch of the PR it belongs to. In a stack, after you commit on a lower branch, carry the fix up: switch to the stack's top branch and run `git rebase --update-refs <lower branch>`. Resolve any conflicts so each branch keeps its own changes. Independent PRs must not change the same lines.
+
 If a fix turns out wrong, for example because it breaks a caller, undo it and judge the item again.
 
-After the last fix, run the checks that cover the whole change once more. Keep runs local: no deploys, and nothing that changes shared databases or services. Never push or open a PR. When you finish, `git status --porcelain` prints nothing.
+After the last fix, run the checks that cover the whole change once more, on each branch that changed. Keep runs local: no deploys, and nothing that changes shared databases or services. Never push or open a PR. When you finish, `git status --porcelain` prints nothing.
 
 ## 4. Report
 
 Give one line per item, in the review's order:
 
 ```
-R1: <verdict>. <the short sha for a fix, the reason for pushback or deferral, the answer, or the question for the user>
+R1: <verdict>. <the branch and short sha for a fix, the reason for pushback or deferral, the answer, or the question for the user>
 
 Checks: <one line per check run after the last fix, and its result>
 Notes: <unrelated problems and unrelated check failures you noticed>
